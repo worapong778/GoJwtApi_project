@@ -8,6 +8,7 @@ import (
 	"github.com/joho/godotenv"
 	AuthContrliier "github.com/worapong778/GoJwtApi_project/controller/auth"
 	UserController "github.com/worapong778/GoJwtApi_project/controller/user"
+	"github.com/worapong778/GoJwtApi_project/middleware"
 	"github.com/worapong778/GoJwtApi_project/orm"
 )
 
@@ -24,7 +25,9 @@ func main() {
 	r.Use(cors.Default())
 	r.POST("/register", AuthContrliier.Register)
 	r.POST("/login", AuthContrliier.Login)
-	r.GET("/users/readall", UserController.ReadUsersAll)
+	authorized := r.Group("/users", middleware.JWTAuthen())
+	authorized.GET("/readall", UserController.ReadUsersAll)
+	authorized.GET("/profile", UserController.Profile)
 
 	// run API
 	r.Run("localhost:8080")

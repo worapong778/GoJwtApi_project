@@ -39,7 +39,7 @@ func Register(c *gin.Context) {
 	if UserEmailExist.Id > 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
-			"message": "User Exists",
+			"message": "user exists",
 		})
 		return
 	}
@@ -55,20 +55,20 @@ func Register(c *gin.Context) {
 		User_tel:      json.Tel,
 	}
 
-	// pass pointer of data to Create
+	// Create data to Database
 	orm.Db.Create(&user)
 
-	// check create error
+	// Check create error
 	if user.Id > 0 {
 		c.JSON(http.StatusOK, gin.H{
-			"status":  "OK",
-			"message": "Register Success",
-			"userID":  user.Id,
+			"status":  "ok",
+			"message": "register success",
+			//"userID":  user.Id,
 		})
 	} else {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
-			"message": "Register Failed",
+			"message": "register failed",
 		})
 	}
 }
@@ -86,25 +86,30 @@ func Login(c *gin.Context) {
 	var json LoginBody
 	err := c.ShouldBindJSON(&json) // check binding ต้องใส่ข้อมูลเข้ามา
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "error",
+			"message": err.Error(),
+		})
 		return
 	}
 
-	//check user login exists
+	//Check Email login
 	var UserEmailExist orm.Tb_users
 	orm.Db.Where("User_email = ?", json.Email).First(&UserEmailExist)
 	if UserEmailExist.Id == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
-			"message": "User Does Not Exists",
+			"message": "email not found",
 		})
 		return
 	}
+
+	//Check Email Password
 	err = bcrypt.CompareHashAndPassword([]byte(UserEmailExist.User_password), []byte(json.Password))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
-			"message": "Login Failed",
+			"message": "incorrect password",
 		})
 		return
 	}
@@ -128,8 +133,8 @@ func Login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"status":  "OK",
-		"message": "Login Success",
+		"status":  "ok",
+		"message": "login success",
 		"token":   tokenString,
 	})
 }
